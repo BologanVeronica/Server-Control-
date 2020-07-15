@@ -1,7 +1,12 @@
-# Server-Control-parametres 
-Dream Team-IoT bootcamp-MicroLab
-        Modalitati de conectare:
-// Pin 8 to IN1 on the ULN2003 driver
-// Pin 9 to IN2 on the ULN2003 driver
-// Pin 10 to IN3 on the ULN2003 driver
-// Pin 11 to IN4 on the ULN2003 driver
+DREAM TEAM - IoT Bootcamp-MircroLab 
+Links for projects:
+https://github.com/BologanVeronica/Monitorizarea-temperaturii-si-umiditatii
+https://github.com/BologanVeronica/Automatic-control
+https://github.com/BologanVeronica/Server-Control-
+
+Future Upgrades:
+https://github.com/BologanVeronica/Future-Upgrades/edit/master/Breakbeam%20system
+https://github.com/BologanVeronica/Future-Upgrades/blob/master/People%20Counter
+https://github.com/BologanVeronica/Future-Upgrades/blob/master/Solar%20Tracker
+https://github.com/BologanVeronica/Future-Upgrades/blob/master/Urna%20Inteligenta
+https://github.com/BologanVeronica/Future-Upgrades/blob/master/%C3%AEnc%C4%83lzire%20Autonoma
