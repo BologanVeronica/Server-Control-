@@ -1,4 +1,4 @@
-# Server-Control-
+# Server-Control-parametres 
 Dream Team-IoT bootcamp-MicroLab
         Modalitati de conectare:
 // Pin 8 to IN1 on the ULN2003 driver
