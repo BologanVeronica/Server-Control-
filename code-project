@@ -1,0 +1,240 @@
+# Server-Control-
+Dream Team-IoT bootcamp-MicroLab
+#include <Stepper.h>
+const int stepsPerRevolution = 6500;
+Stepper myStepper = Stepper(stepsPerRevolution, 15, 0, 2, 4);
+#include <WiFi.h>
+#include <stdlib.h>
+#include <FirebaseESP32.h>
+#define FIREBASE_HOST "https://esp32-bootcamp.firebaseio.com/"
+#define FIREBASE_AUTH "NsBdEGjLXdUGPy4FRhyhN8E4jMcNFq9fVbsyBli3"
+#define WIFI_SSID "Orange-Tekwill"
+#define WIFI_PASSWORD " "
+
+  FirebaseData firebaseData;
+  FirebaseJson json;
+  WiFiServer server(80);
+  String header;
+  String output26State = "off";
+  String output27State = "off";
+  String output28State = "off";
+  String output12State = "off";
+  
+  const int output26 = 26;
+  const int output27 = 27;
+  const int output28 = 13;
+  const int output12 = 12;
+  unsigned long currentTime = millis();
+  unsigned long previousTime = 0; 
+  const long timeoutTime = 2000;
+
+void setup() 
+ {
+      Serial.begin(115200);
+      InitStepper();
+      ConfigNetwork();
+ }
+ 
+ void loop()
+ {
+      ConectareRetea();
+  }
+  
+  void ConfigNetwork()
+ {
+      Serial.print("Connecting to ");
+      Serial.println(WIFI_SSID);
+      WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+      while (WiFi.status() != WL_CONNECTED) 
+      
+          {
+            delay(500);
+            Serial.print(".");
+          }
+      
+      Serial.println("");
+      Serial.println("WiFi connected.");
+      Serial.print("IP address: ");
+      Serial.println(WiFi.localIP());
+      server.begin();
+      Firebase.begin(FIREBASE_HOST, FIREBASE_AUTH);
+      Firebase.reconnectWiFi(true);
+      Firebase.setReadTimeout(firebaseData, 1000 * 60);
+      Firebase.setwriteSizeLimit(firebaseData, "tiny");
+  }
+    
+  void InitStepper()
+  {
+      myStepper.setSpeed(4);
+      pinMode(output26, OUTPUT);
+      pinMode(output27, OUTPUT);
+      pinMode(output28, OUTPUT);
+      pinMode(output12, OUTPUT);
+    
+      digitalWrite(output26, LOW);
+      digitalWrite(output27, LOW);
+      digitalWrite(output28, LOW);
+  }
+
+void ConectareRetea()
+  {
+      WiFiClient client = server.available();   
+      int randomData = rand() % 100;
+      if (client) 
+          {                             
+              currentTime = millis();
+              previousTime = currentTime;
+              Serial.println("New Client.");          
+              String currentLine = "";                
+              while (client.connected() && currentTime - previousTime <= timeoutTime) 
+                  {  
+                      currentTime = millis();
+                      if (client.available()) 
+                                {             
+                                      char c = client.read();             
+                                      Serial.write(c);                    
+                                      header += c;
+                                      if (c == '\n') 
+                                       {                    
+                                          if (currentLine.length() == 0) 
+                                          
+                                                   {
+                                                        client.println("HTTP/1.1 200 OK");
+                                                        client.println("Content-type:text/html");
+                                                        client.println("Connection: close");
+                                                        client.println();
+                                                        json.set("/data", randomData);
+                                                        Firebase.updateNode(firebaseData, "/random", json);
+                                                        
+                                                        if (header.indexOf("GET /26/on") >= 0) 
+                                                            {
+              
+                                                                {
+                                                                  Serial.println("GPIO 26 on");
+                                                                  output26State = "on";
+                                                                  digitalWrite(output26, HIGH);
+                                                                } 
+                                                                else if (header.indexOf("GET /26/off") >= 0) 
+                                                                {
+                                                                  Serial.println("GPIO 26 off");
+                                                                  output26State = "off";
+                                                                  digitalWrite(output26, LOW);
+                                                                } 
+                                                                else if (header.indexOf("GET /27/on") >= 0) 
+                                                                {
+                                                                  Serial.println("GPIO 27 on");
+                                                                  output27State = "on";
+                                                                  digitalWrite(output27, HIGH);
+                                                                }
+                                                                else if (header.indexOf("GET /27/off") >= 0) 
+                                                                {
+                                                                  Serial.println("GPIO 27 off");
+                                                                  output27State = "off";
+                                                                  digitalWrite(output27, LOW);
+                                                                } else if (header.indexOf("GET /28/on") >= 0) {
+                                                                  Serial.println("GPIO 28 on");
+                                                                  output28State = "on";
+                                                                  digitalWrite(output28, HIGH);
+                                                                } else if (header.indexOf("GET /28/off") >= 0) {
+                                                                  Serial.println("GPIO 28 off");
+                                                                  output28State = "off";
+                                                                  digitalWrite(output28, LOW);
+                                                                } 
+                                                                
+                                                                else if (header.indexOf("GET /12/on") >= 0) {
+                                                                  Serial.println("GPIO 12 on");
+                                                                  output12State = "on";
+                                                                  myStepper.step(stepsPerRevolution);
+                                                                } 
+                                                                
+                                                                else if (header.indexOf("GET /12/off") >= 0)
+                                                                {
+                                                                  Serial.println("GPIO 12 off");
+                                                                  output12State = "off";
+                                                                  myStepper.step(-stepsPerRevolution);
+
+                                                                  client.println("<!DOCTYPE html><html>");
+                                                                  client.println("<head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">");
+                                                                  client.println("<link rel=\"icon\" href=\"data:,\">");
+                                                                  // CSS to style the on/off buttons 
+                                                                  // Feel free to change the background-color and font-size attributes to fit your preferences
+                                                                  client.println("<style>html { font-family: Helvetica; display: inline-block; margin: 0px auto; text-align: center;}");
+                                                                  client.println(".button { background-color: #4CAF50; border: none; color: white; padding: 10px 40px;");
+                                                                  client.println("text-decoration: none; font-size: 30px; margin: 2px; cursor: pointer;}");
+                                                                  client.println(".button3 {background-color: #555555;}</style></head>");
+                                                                  client.println("<body><h1>ESP32 Web Server</h1>");
+                                                                  client.println("<p>GPIO 26 - State " + output26State + "</p>"); 
+                                                                      
+                                                                  if (output26State=="off") 
+                                                                        {
+                                                                          client.println("<p><a href=\"/26/on\"><button class=\"button\">ON</button></a></p>");
+                                                                        } 
+                                                                        else 
+                                                                        {
+                                                                          client.println("<p><a href=\"/26/off\"><button class=\"button button2\">OFF</button></a></p>");
+                                                                        }   
+                                                                        client.println("<p>GPIO 27 - State " + output27State + "</p>");
+                                                                               
+                                                                                if (output27State=="off") 
+                                                                                      {
+                                                                                        client.println("<p><a href=\"/27/on\"><button class=\"button\">ON</button></a></p>");
+                                                                                      } else 
+                                                                                      {
+                                                                                        client.println("<p><a href=\"/27/off\"><button class=\"button button2\">OFF</button></a></p>");
+                                                                                      }
+             
+                                                                                        client.println("<p>GPIO 28 - State " + output28State + "</p>");      
+                                                                                      if (output28State=="off") 
+                                                                                              {
+                                                                                                  client.println("<p><a href=\"/28/on\"><button class=\"button\">ON</button></a></p>");
+                                                                                              } 
+                                                                                      else 
+                                                                                              {
+                                                                                                  client.println("<p><a href=\"/28/off\"><button class=\"button button3\">OFF</button></a></p>");
+                                                                                              }
+                                                                                       client.println("<p>GPIO 12 - State " + output12State + "</p>");
+                  
+                                                                                             if (output12State=="off")
+                                                                                                   {
+                                                                                                      client.println("<p><a href=\"/12/on\"><button class=\"button\">ON</button></a></p>");
+                                                                                                   }
+                                                                                             else
+                                                                                                   {
+                                                                                                      client.println("<p><a href=\"/12/off\"><button class=\"button button3\">OFF</button></a></p>");
+                                                                                                   }
+                                                                                       client.println("</body></html>");
+     
+                                                                                       client.println();
+    
+                                                                                        break;
+                                                                    }
+          
+                                                               else
+                                                               { 
+                                                                  currentLine = "";
+                                                               }
+                                                   }
+                                             else if (c != '\r')
+                                                      { 
+                                                          currentLine += c;      
+                                                      }
+                                                      
+                                                }
+                                                
+        
+                         header = "";
+                         client.stop();
+                         Serial.println("Client disconnected.");
+                         Serial.println("");
+                         
+                               }
+                               
+                     }
+                     
+            }
+            
+
+      }
+
+ }
+  
